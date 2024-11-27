@@ -151,7 +151,7 @@ var aadOauth = (function () {
 
         authResult = interactiveAuthResult;
 
-        onSuccess(authResult.accessToken ?? null);
+        onSuccess(authResult?? null);
       } catch (error) {
         // rethrow
         console.warn(error.message);
