@@ -169,6 +169,9 @@ class Config {
   /// add onPageFinished callback
   Function(String url)? onPageFinished;
 
+  /// Enable logging for debugging purposes
+  bool enableLogging = false;
+
   /// Determine an appropriate redirect URI for AAD authentication.
   /// On web, it is the location that the application is being served from.
   /// On mobile, it is https://login.live.com/oauth20_desktop.srf
@@ -224,18 +227,18 @@ class Config {
     this.postLogoutRedirectUri,
     this.appBar,
     this.onPageFinished,
-  })
-      : authorizationUrl = customAuthorizationUrl ??
-      (isB2C
-          ? (customDomainUrlWithTenantId == null
-          ? 'https://$tenant.b2clogin.com/$tenant.onmicrosoft.com/$policy/oauth2/v2.0/authorize'
-          : '$customDomainUrlWithTenantId/$policy/oauth2/v2.0/authorize')
-          : 'https://login.microsoftonline.com/$tenant/oauth2/v2.0/authorize'),
+    this.enableLogging = false,
+  })  : authorizationUrl = customAuthorizationUrl ??
+            (isB2C
+                ? (customDomainUrlWithTenantId == null
+                    ? 'https://$tenant.b2clogin.com/$tenant.onmicrosoft.com/$policy/oauth2/v2.0/authorize'
+                    : '$customDomainUrlWithTenantId/$policy/oauth2/v2.0/authorize')
+                : 'https://login.microsoftonline.com/$tenant/oauth2/v2.0/authorize'),
         tokenUrl = customTokenUrl ??
             (isB2C
                 ? (customDomainUrlWithTenantId == null
-                ? 'https://$tenant.b2clogin.com/$tenant.onmicrosoft.com/$policy/oauth2/v2.0/token'
-                : '$customDomainUrlWithTenantId/$policy/oauth2/v2.0/token')
+                    ? 'https://$tenant.b2clogin.com/$tenant.onmicrosoft.com/$policy/oauth2/v2.0/token'
+                    : '$customDomainUrlWithTenantId/$policy/oauth2/v2.0/token')
                 : 'https://login.microsoftonline.com/$tenant/oauth2/v2.0/token'),
         aOptions = aOptions ?? AndroidOptions(encryptedSharedPreferences: true),
         cacheLocation = cacheLocation ?? CacheLocation.localStorage,
@@ -276,6 +279,7 @@ class Config {
     String? postLogoutRedirectUri,
     PreferredSizeWidget? appBar,
     Function(String url)? onPageFinished,
+    bool? enableLogging,
   }) {
     return Config(
       tenant: tenant ?? this.tenant,
@@ -295,11 +299,11 @@ class Config {
       clientSecret: clientSecret ?? this.clientSecret,
       resource: resource ?? this.resource,
       isB2C: isB2C ?? this.isB2C,
-      customAuthorizationUrl: customAuthorizationUrl ??
-          this.customAuthorizationUrl,
+      customAuthorizationUrl:
+          customAuthorizationUrl ?? this.customAuthorizationUrl,
       customTokenUrl: customTokenUrl ?? this.customTokenUrl,
-      customDomainUrlWithTenantId: customDomainUrlWithTenantId ??
-          this.customDomainUrlWithTenantId,
+      customDomainUrlWithTenantId:
+          customDomainUrlWithTenantId ?? this.customDomainUrlWithTenantId,
       loginHint: loginHint ?? this.loginHint,
       domainHint: domainHint ?? this.domainHint,
       codeVerifier: codeVerifier ?? this.codeVerifier,
@@ -312,9 +316,10 @@ class Config {
       origin: origin ?? this.origin,
       customParameters: customParameters ?? this.customParameters,
       postLogoutRedirectUri:
-      postLogoutRedirectUri ?? this.postLogoutRedirectUri,
+          postLogoutRedirectUri ?? this.postLogoutRedirectUri,
       appBar: appBar ?? this.appBar,
       onPageFinished: onPageFinished ?? this.onPageFinished,
+      enableLogging: enableLogging ?? this.enableLogging,
     );
   }
 }

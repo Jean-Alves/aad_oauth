@@ -35,6 +35,15 @@ var aadOauth = (function () {
              cacheLocation: config.cacheLocation,
              storeAuthStateInCookie: false,
          },
+         system: config.enableLogging !==true?null: {
+          loggerOptions: {
+              loggerCallback(loglevel, message, containsPii) {
+                  console.log(message);
+              },
+              piiLoggingEnabled: false,
+              logLevel: msal.LogLevel.Verbose,
+            }
+          }
      };
 
      if (typeof config.scope === "string") {
@@ -60,12 +69,14 @@ var aadOauth = (function () {
   // global authResult variable.
   async function silentlyAcquireToken() {
     try {
+      
       // The redirect handler task will complete with auth results if we
       // were redirected from AAD. If not, it will complete with null
       // We must wait for it to complete before we allow the login to
       // attempt to acquire a token silently, and then progress to interactive
       // login (if silent acquisition fails).
       let result = await redirectHandlerTask;
+
       if (result !== null) {
         authResult = result;
         return authResult;
@@ -79,7 +90,6 @@ var aadOauth = (function () {
     if (account == null) {
       return null;
     }
-
     try {
       // Silent acquisition only works if the access token is either
       // within its lifetime, or the refresh token can successfully be
@@ -91,7 +101,6 @@ var aadOauth = (function () {
         account: account,
         extraQueryParameters: tokenRequest.extraQueryParameters
       });
-
       return  authResult = silentAuthResult;
     } catch (error) {
       console.log('Unable to silently acquire a new token: ' + error.message)
@@ -118,19 +127,19 @@ var aadOauth = (function () {
   /// to attempt to refresh the token using an interactive login.
 
   async function login(refreshIfAvailable, useRedirect, onSuccess, onError) {
+
     // Try to sign in silently, assuming we have already signed in and have
     // a cached access token
     await silentlyAcquireToken()
-
     if(authResult != null) {
       // Skip interactive login
-      onSuccess(authResult.accessToken ?? null);
+      onSuccess(authResult ? JSON.stringify(authResult) : null);
       return
     }
 
     const account = getAccount()
-
     if (useRedirect) {
+
       myMSALObj.acquireTokenRedirect({
         scopes: tokenRequest.scopes,
         prompt: tokenRequest.prompt,
@@ -148,15 +157,10 @@ var aadOauth = (function () {
           extraQueryParameters: tokenRequest.extraQueryParameters,
           loginHint: tokenRequest.loginHint
         });
-        console.log('++++++++++ Inicio ++++++++++++');
-        console.log('++ interactiveAuthResult - '+interactiveAuthResult, );
-        console.log( '++ interactiveAuthResult 2 - '+JSON.stringify(interactiveAuthResult, null, 2),);
-        authResult = interactiveAuthResult;
-        console.log('++ authResult - '+JSON.stringify(authResult), );
-        
-        console.log('++++++++++ FIM ++++++++++++');
 
-        onSuccess(authResult?? null);
+        authResult = interactiveAuthResult;
+
+        onSuccess(authResult ? JSON.stringify(authResult) : null);
       } catch (error) {
         // rethrow
         console.warn(error.message);
@@ -191,7 +195,7 @@ var aadOauth = (function () {
     await silentlyAcquireToken()
 
     if(authResult != null) {
-      onSuccess(authResult.accessToken ?? null);
+      onSuccess(authResult ? JSON.stringify(authResult) : null);
       return
     }
   }
@@ -218,24 +222,47 @@ var aadOauth = (function () {
     }
   }
 
+  
+  function clearCookies() {
+    const cookies = document.cookie.split(";");
+
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i];
+      const eqPos = cookie.indexOf("=");
+      const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+      document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+    }
+  }  
+  
+  async function clearCacheAndCookies() {
+    // Limpar localStorage e sessionStorage
+    localStorage.clear();
+    sessionStorage.clear();
+    clearCookies();
+    await myMSALObj.clearCache();
+
+  }
   function logout(onSuccess, onError, showPopup) {
     const account = getAccount();
 
     if (!account) {
+      clearCacheAndCookies();
       onSuccess();
       return;
     }
-
     authResult = null;
-    authResultError = null;
-    tokenRequest.scopes = null;
 
     if (showPopup) {
       myMSALObj
         .logout({ account: account })
-        .then((_) => onSuccess())
+        .then((_) => {
+          clearCacheAndCookies();
+          onSuccess();
+        })
         .catch(onError);
     } else {
+
+   
       myMSALObj
         .logoutRedirect({
           account: account,
@@ -243,8 +270,12 @@ var aadOauth = (function () {
             return false;
           }
         })
-        .then((_) => onSuccess())
+        .then((_) => {
+          clearCacheAndCookies();
+          onSuccess();
+        })
         .catch(onError);
+     
     }
 
 
@@ -259,6 +290,10 @@ var aadOauth = (function () {
     var result = await silentlyAcquireToken()
     return result ? result.idToken : null;
   }
+  async function getToken() {
+    var result = await silentlyAcquireToken()
+    return result ? JSON.stringify(result) : null;
+  }
 
   function hasCachedAccountInformation() {
     return getAccount() != null;
@@ -272,5 +307,6 @@ var aadOauth = (function () {
     getIdToken: getIdToken,
     getAccessToken: getAccessToken,
     hasCachedAccountInformation: hasCachedAccountInformation,
+    getToken: getToken,
   };
 })();

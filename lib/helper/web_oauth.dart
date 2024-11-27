@@ -39,6 +39,9 @@ external Object jsGetAccessToken();
 @JS('getIdToken')
 external Object jsGetIdToken();
 
+@JS('getToken')
+external Object jsGetToken();
+
 @JS('hasCachedAccountInformation')
 external bool jsHasCachedAccountInformation();
 
@@ -52,32 +55,34 @@ class WebOAuth extends CoreOAuth {
   final Config config;
   WebOAuth(this.config) {
     jsInit(MsalConfig.construct(
-        tenant: config.tenant,
-        policy: config.policy,
-        clientId: config.clientId,
-        responseType: config.responseType,
-        redirectUri: config.redirectUri,
-        scope: config.scope,
-        responseMode: config.responseMode,
-        state: config.state,
-        prompt: config.prompt,
-        codeChallenge: config.codeChallenge,
-        codeChallengeMethod: config.codeChallengeMethod,
-        nonce: config.nonce,
-        tokenIdentifier: config.tokenIdentifier,
-        clientSecret: config.clientSecret,
-        resource: config.resource,
-        isB2C: config.isB2C,
-        customAuthorizationUrl: config.customAuthorizationUrl,
-        customTokenUrl: config.customTokenUrl,
-        loginHint: config.loginHint,
-        domainHint: config.domainHint,
-        codeVerifier: config.codeVerifier,
-        authorizationUrl: config.authorizationUrl,
-        tokenUrl: config.tokenUrl,
-        cacheLocation: config.cacheLocation.value,
-        customParameters: jsonEncode(config.customParameters),
-        postLogoutRedirectUri: config.postLogoutRedirectUri));
+      tenant: config.tenant,
+      policy: config.policy,
+      clientId: config.clientId,
+      responseType: config.responseType,
+      redirectUri: config.redirectUri,
+      scope: config.scope,
+      responseMode: config.responseMode,
+      state: config.state,
+      prompt: config.prompt,
+      codeChallenge: config.codeChallenge,
+      codeChallengeMethod: config.codeChallengeMethod,
+      nonce: config.nonce,
+      tokenIdentifier: config.tokenIdentifier,
+      clientSecret: config.clientSecret,
+      resource: config.resource,
+      isB2C: config.isB2C,
+      customAuthorizationUrl: config.customAuthorizationUrl,
+      customTokenUrl: config.customTokenUrl,
+      loginHint: config.loginHint,
+      domainHint: config.domainHint,
+      codeVerifier: config.codeVerifier,
+      authorizationUrl: config.authorizationUrl,
+      tokenUrl: config.tokenUrl,
+      cacheLocation: config.cacheLocation.value,
+      customParameters: jsonEncode(config.customParameters),
+      postLogoutRedirectUri: config.postLogoutRedirectUri,
+      enableLogging: config.enableLogging,
+    ));
   }
 
   @override
@@ -88,6 +93,14 @@ class WebOAuth extends CoreOAuth {
   @override
   Future<String?> getIdToken() async {
     return promiseToFuture(jsGetIdToken());
+  }
+
+  @override
+  Future<Token?> getToken() async {
+    final token = await promiseToFuture(jsGetToken());
+    if (token == null) return null;
+    final decodedValue = json.decode(token) as Map<String, dynamic>;
+    return Token.fromJson(decodedValue);
   }
 
   @override
@@ -102,24 +115,25 @@ class WebOAuth extends CoreOAuth {
     jsLogin(
       refreshIfAvailable,
       config.webUseRedirect,
-      allowInterop((value) {
-        print('+++ allowInterop: $value');
-        print('+++ allowInterop: ${value.toString()}');
-        print('+++ allowInterop: ${jsonEncode(value)}');
-        try {
-          completer.complete(Right(Token.fromJson(value)));
-        } catch (error) {
-          completer.complete(
-            Left(
-              AadOauthFailure(
-                errorType: ErrorType.accessDeniedOrAuthenticationCanceled,
-                message:
-                    'Access denied or authentication canceled. Error: ${error.toString()}',
+      allowInterop(
+        (value) {
+          try {
+            final decodedValue = json.decode(value) as Map<String, dynamic>;
+
+            completer.complete(Right(Token.fromJson(decodedValue)));
+          } catch (error) {
+            completer.complete(
+              Left(
+                AadOauthFailure(
+                  errorType: ErrorType.invalidJson,
+                  message:
+                      'Error: Failed to convert token. Please verify the response structure or the provided data. Details: $error',
+                ),
               ),
-            ),
-          );
-        }
-      }),
+            );
+          }
+        },
+      ),
       allowInterop(
         (error) => completer.complete(
           Left(
@@ -154,12 +168,22 @@ class WebOAuth extends CoreOAuth {
   }
 
   @override
-  Future<void> logout({bool showPopup = true, bool clearCookies = true}) async {
-    final completer = Completer<void>();
+  Future<Either<Failure, bool>> logout(
+      {bool showPopup = true, bool clearCookies = true}) async {
+    final completer = Completer<Either<Failure, bool>>();
 
     jsLogout(
-      allowInterop(completer.complete),
-      allowInterop((error) => completer.completeError(error)),
+      allowInterop(() => completer.complete(Right(true))),
+      allowInterop(
+        (error) => completer.complete(
+          Left(
+            AadOauthFailure(
+              errorType: ErrorType.unexpectedError,
+              message: 'Error during logout. Error: ${error.toString()}',
+            ),
+          ),
+        ),
+      ),
       showPopup,
     );
 

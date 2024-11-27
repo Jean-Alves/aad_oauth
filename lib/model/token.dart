@@ -28,6 +28,17 @@ class Token {
   /// How long the access token is valid (in seconds).
   int? expiresIn;
 
+  /// The time when the token expires.
+  DateTime? expiresOn;
+  DateTime? extExpiresOn;
+
+  ///
+  /// Indicates whether the token was retrieved from the cache.
+  ///
+  /// If `true`, the token was loaded from the cache. If `false` or `null`,
+  /// the token was obtained through a new authentication request.
+  bool? fromCache;
+
   /// Access token enabling to securely call protected APIs on behalf of the user.
   Token({this.accessToken});
 
@@ -44,10 +55,10 @@ class Token {
   static Map toJsonMap(Token model) {
     var ret = {};
     if (model.accessToken != null) {
-      ret['access_token'] = model.accessToken;
+      ret['accessToken'] = model.accessToken;
     }
     if (model.tokenType != null) {
-      ret['token_type'] = model.tokenType;
+      ret['tokenType'] = model.tokenType;
     }
     if (model.refreshToken != null) {
       ret['refresh_token'] = model.refreshToken;
@@ -59,7 +70,16 @@ class Token {
       ret['expire_timestamp'] = model.expireTimeStamp!.millisecondsSinceEpoch;
     }
     if (model.idToken != null) {
-      ret['id_token'] = model.idToken;
+      ret['idToken'] = model.idToken;
+    }
+    if (model.expiresOn != null) {
+      ret['expiresOn'] = model.expiresOn!.toIso8601String();
+    }
+    if (model.extExpiresOn != null) {
+      ret['extExpiresOn'] = model.extExpiresOn!.toIso8601String();
+    }
+    if (model.fromCache != null) {
+      ret['fromCache'] = model.fromCache;
     }
     return ret;
   }
@@ -74,19 +94,24 @@ class Token {
     }
 
     var model = Token();
-    model.accessToken = map['access_token'];
-    model.tokenType = map['token_type'];
+    model.accessToken = map['accessToken'];
+    model.tokenType = map['tokenType'];
     model.expiresIn = map['expires_in'] is int
         ? map['expires_in']
         : int.tryParse(map['expires_in'].toString()) ?? 60;
+    model.expiresOn =
+        map['expiresOn'] != null ? DateTime.parse(map['expiresOn']) : null;
+    model.extExpiresOn = map['extExpiresOn'] != null
+        ? DateTime.parse(map['extExpiresOn'])
+        : null;
     model.refreshToken = map['refresh_token'];
-    model.idToken = map.containsKey('id_token') ? map['id_token'] : '';
+    model.idToken = map.containsKey('idToken') ? map['idToken'] : '';
     model.issueTimeStamp = DateTime.now().toUtc();
     model.expireTimeStamp = map.containsKey('expire_timestamp')
         ? DateTime.fromMillisecondsSinceEpoch(map['expire_timestamp'])
         : model.issueTimeStamp
             .add(Duration(seconds: model.expiresIn! - model.expireOffSet));
-
+    model.fromCache = map.containsKey('fromCache') ? map['fromCache'] : '';
     return model;
   }
 

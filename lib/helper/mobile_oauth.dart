@@ -102,11 +102,13 @@ class MobileOAuth extends CoreOAuth {
 
   /// Perform Azure AD logout.
   @override
-  Future<void> logout({bool showPopup = true, bool clearCookies = true}) async {
+  Future<Either<Failure, bool>> logout(
+      {bool showPopup = true, bool clearCookies = true}) async {
     await _authStorage.clear();
     if (clearCookies) {
       await _requestCode.clearCookies();
     }
+    return Right(true);
   }
 
   @override

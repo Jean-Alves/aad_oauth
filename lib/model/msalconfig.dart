@@ -154,5 +154,6 @@ class MsalConfig {
       String? tokenUrl,
       String? cacheLocation,
       String? customParameters,
-      String? postLogoutRedirectUri});
+      String? postLogoutRedirectUri,
+      bool? enableLogging});
 }

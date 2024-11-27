@@ -1,11 +1,13 @@
 const kCacheLocalStorage = 'localStorage';
 const kCacheMemoryStorage = 'memoryStorage';
 const kCacheSessionStorage = 'sessionStorage';
+const kCacheNone = 'none';
 
 enum CacheLocation {
   localStorage(kCacheLocalStorage),
   memoryStorage(kCacheMemoryStorage),
-  sessionStorage(kCacheSessionStorage);
+  sessionStorage(kCacheSessionStorage),
+  none(kCacheNone);
 
   final String value;
 
