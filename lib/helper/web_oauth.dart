@@ -105,6 +105,7 @@ class WebOAuth extends CoreOAuth {
       allowInterop((value) {
         print('+++ value: $value');
         print('+++ value: ${value.toString()}');
+        print('+++ value: ${jsonEncode(value)}');
         completer.complete(Right(Token.fromJson(value)));
       }),
       allowInterop((error) => completer.complete(Left(AadOauthFailure(

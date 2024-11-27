@@ -152,6 +152,7 @@ var aadOauth = (function () {
         console.log(JSON.stringify(interactiveAuthResult, null, 2), '++ authResult');
         authResult = interactiveAuthResult;
         console.log(JSON.stringify(authResult), '++ authResult');
+        console.log( '++ authResult');
         onSuccess(authResult?? null);
       } catch (error) {
         // rethrow
