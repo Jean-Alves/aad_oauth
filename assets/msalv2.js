@@ -148,9 +148,9 @@ var aadOauth = (function () {
           extraQueryParameters: tokenRequest.extraQueryParameters,
           loginHint: tokenRequest.loginHint
         });
-
+        console.log(interactiveAuthResult, '++ interactiveAuthResult');
         authResult = interactiveAuthResult;
-
+        console.log(authResult, '++ authResult');
         onSuccess(authResult?? null);
       } catch (error) {
         // rethrow
