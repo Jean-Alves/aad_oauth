@@ -149,8 +149,9 @@ var aadOauth = (function () {
           loginHint: tokenRequest.loginHint
         });
         console.log(interactiveAuthResult, '++ interactiveAuthResult');
+        console.log(JSON.stringify(interactiveAuthResult, null, 2), '++ authResult');
         authResult = interactiveAuthResult;
-        console.log(authResult, '++ authResult');
+        console.log(JSON.stringify(authResult), '++ authResult');
         onSuccess(authResult?? null);
       } catch (error) {
         // rethrow
