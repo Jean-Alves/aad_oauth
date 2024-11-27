@@ -148,12 +148,9 @@ var aadOauth = (function () {
           extraQueryParameters: tokenRequest.extraQueryParameters,
           loginHint: tokenRequest.loginHint
         });
-        console.log(interactiveAuthResult, '++ interactiveAuthResult');
-        console.log(JSON.stringify(interactiveAuthResult, null, 2), '++ authResult');
-        authResult = interactiveAuthResult;
-        console.log(JSON.stringify(authResult), '++ authResult');
-        console.log( '++ authResult');
-        onSuccess(authResult?? null);
+     
+        console.log('++ authResult mSalv'+JSON.stringify(authResult), );
+        onSuccess(authResult==null? null:JSON.stringify(authResult));
       } catch (error) {
         // rethrow
         console.warn(error.message);

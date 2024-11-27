@@ -103,9 +103,9 @@ class WebOAuth extends CoreOAuth {
       refreshIfAvailable,
       config.webUseRedirect,
       allowInterop((value) {
-        print('+++ value: $value');
-        print('+++ value: ${value.toString()}');
-        print('+++ value: ${jsonEncode(value)}');
+        print('+++ allowInterop: $value');
+        print('+++ allowInterop: ${value.toString()}');
+        print('+++ allowInterop: ${jsonEncode(value)}');
         completer.complete(Right(Token.fromJson(value)));
       }),
       allowInterop((error) => completer.complete(Left(AadOauthFailure(
