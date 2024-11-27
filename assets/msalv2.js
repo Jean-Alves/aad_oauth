@@ -148,9 +148,15 @@ var aadOauth = (function () {
           extraQueryParameters: tokenRequest.extraQueryParameters,
           loginHint: tokenRequest.loginHint
         });
-     
-        console.log('++ authResult mSalv'+JSON.stringify(authResult), );
-        onSuccess(authResult==null? null:JSON.stringify(authResult));
+        console.log('++++++++++ Inicio ++++++++++++');
+        console.log('++ interactiveAuthResult - '+interactiveAuthResult, );
+        console.log( '++ interactiveAuthResult 2 - '+JSON.stringify(interactiveAuthResult, null, 2),);
+        authResult = interactiveAuthResult;
+        console.log('++ authResult - '+JSON.stringify(authResult), );
+        
+        console.log('++++++++++ FIM ++++++++++++');
+
+        onSuccess(authResult?? null);
       } catch (error) {
         // rethrow
         console.warn(error.message);

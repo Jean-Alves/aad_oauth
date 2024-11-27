@@ -106,13 +106,31 @@ class WebOAuth extends CoreOAuth {
         print('+++ allowInterop: $value');
         print('+++ allowInterop: ${value.toString()}');
         print('+++ allowInterop: ${jsonEncode(value)}');
-        completer.complete(Right(Token.fromJson(value)));
+        try {
+          completer.complete(Right(Token.fromJson(value)));
+        } catch (error) {
+          completer.complete(
+            Left(
+              AadOauthFailure(
+                errorType: ErrorType.accessDeniedOrAuthenticationCanceled,
+                message:
+                    'Access denied or authentication canceled. Error: ${error.toString()}',
+              ),
+            ),
+          );
+        }
       }),
-      allowInterop((error) => completer.complete(Left(AadOauthFailure(
-            errorType: ErrorType.accessDeniedOrAuthenticationCanceled,
-            message:
-                'Access denied or authentication canceled. Error: ${error.toString()}',
-          )))),
+      allowInterop(
+        (error) => completer.complete(
+          Left(
+            AadOauthFailure(
+              errorType: ErrorType.accessDeniedOrAuthenticationCanceled,
+              message:
+                  'Access denied or authentication canceled. Error: ${error.toString()}',
+            ),
+          ),
+        ),
+      ),
     );
 
     return completer.future;
